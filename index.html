@@ -13,8 +13,8 @@
         <h1>Affirmations</h1>
 
         <div class="controls">
-            <button id="library-btn" class="icon-btn">lib</button>
-            <button id="ambient-btn" class="icon-btn">amb</button>
+            <button id="library-btn" class="icon-btn">📚</button>
+            <button id="ambient-btn" class="icon-btn">🌙</button>
         </div>
 
         <div class="card-container">
@@ -30,7 +30,7 @@
             </div>
         </div>
         <div class="buttons">
-            <button id="favorite-btn">⭐ Favorite</button>
+            <button id="favorite-btn">Favorite</button>
             <button id="next-btn">Next</button>
         </div>
     </div>
@@ -46,9 +46,11 @@
     <div class="ambient-menu" id="ambient-menu">
         <button data-ambient="none">None</button>
         <button data-ambient="rain">Rain</button>
-        <button data-ambient="library">Library</button>
-        <button data-ambient="candle">Candle</button>
     </div>
+
+    <audio id="rain-sound" loop>
+        <source src="https://cdn.pixabay.com/download/audio/2022/05/13/audio_257112ce99.mp3" type="audio/mpeg">
+    </audio>
 
     <script src="data/quotes.js"></script>
     <script src="script.js"></script>

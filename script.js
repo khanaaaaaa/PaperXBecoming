@@ -13,6 +13,8 @@ const ambientMenu = document.getElementById('ambient-menu');
 const ambientOverlay = document.getElementById('ambient-overlay');
 const journalInput = document.getElementById('journal-input');
 
+const rainSound = document.getElementById('rain-sound');
+
 let currentIndex = -1;
 let currentQuote = null;
 let savedCards = JSON.parse(localStorage.getItem('savedCards')) || [];
@@ -115,11 +117,23 @@ ambientBtn.addEventListener('click', () => {
 });
 
 document.querySelectorAll('[data-ambient]').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
         const mode = btn.dataset.ambient;
         ambientOverlay.className = 'ambient-overlay';
-        if (mode !== 'none') {
-            ambientOverlay.classList.add(mode);
+        
+        if (rainSound) {
+            rainSound.pause();
+            rainSound.currentTime = 0;
+        }
+        
+        if (mode === 'rain') {
+            ambientOverlay.classList.add('rain');
+            rainSound.volume = 0.3;
+            try {
+                await rainSound.play();
+            } catch (e) {
+                console.log('Audio play failed:', e);
+            }
         }
         ambientMenu.classList.remove('open');
     });
