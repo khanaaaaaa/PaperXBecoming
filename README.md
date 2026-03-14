@@ -6,15 +6,13 @@ Live demo: [khanaaaaaa.github.io/PaperXBecoming](https://khanaaaaaa.github.io/Pa
 
 ## What it is
 
-PaperXBecoming is a mindfulness web app built around affirmation cards. You open it, tell it how you're arriving — Heavy, Searching, or Grateful — and it gives you a quote to sit with and a reflection prompt tailored to that mood. You can flip the card to see the prompt, save cards you want to keep, and use the meditation tab for a breathing guide and session timer.
-
-The aesthetic is dark academia — warm parchment cards, candlelit tones, serif fonts. It's meant to feel like opening a journal, not opening an app.
+PaperXBecoming is a mindfulness web app built around affirmation cards. You tell it how you're arriving and it gives you a quote to sit withtailored to that mood. You can save cards you want to keep, and use the meditation tab for a breathing guide and session timer.
 
 ---
 
 ## Why I made it
 
-I wanted to build something that felt intentional. Most productivity or wellness apps are loud and gamified. I wanted the opposite — something quiet, something that slows you down for a minute. I also wanted a project that was fully mine in terms of design direction, not just a tutorial clone.
+I wanted to build something that felt intentional, something that slows you down for a minute. I also wanted a project that was fully mine in terms of design direction, not just a tutorial clone.
 
 ---
 
@@ -39,4 +37,4 @@ Plain HTML, CSS, and vanilla JavaScript — no frameworks, no build tools. Just 
 
 **CSS flip cards** looked simple but `backface-visibility` behaves inconsistently across browsers without `transform-style: preserve-3d` set on the parent. Small thing, annoying to debug.
 
-The biggest thing I learned is that debugging your own code after you've been staring at it for hours is genuinely hard. Reading the file fresh — or having someone else read it — catches things you've gone blind to. I also learned that a project doesn't need dependencies to feel polished. Vanilla JS and a good color palette go a long way.
+The biggest thing I learned is that debugging your own code after you've been staring at it for hours is genuinely hard. Reading the file when you're fresh or having someone else read it catches things you've gone blind to.
