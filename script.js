@@ -8,23 +8,33 @@ const libraryPanel = document.getElementById('library-panel');
 const closeLibrary = document.getElementById('close-library');
 const libraryShelf = document.getElementById('library-shelf');
 const bookmark = document.getElementById('bookmark');
-const ambientBtn = document.getElementById('ambient-btn');
-const ambientMenu = document.getElementById('ambient-menu');
 const ambientOverlay = document.getElementById('ambient-overlay');
-const rainSound = document.getElementById('rain-sound');
+const moodOverlay = document.getElementById('splash-screen');
+const mainApp = document.getElementById('main-app');
 
-const reflections = [
-    "What made you feel worthy today?",
-    "Which thought served you best today?",
-    "Where can you practice more patience?",
-    "What small step did you take toward growth today?",
-    "What abundance are you grateful for right now?",
-    "What are you ready to let go of?",
-    "How does this moment serve your journey?",
-    "What would you do if you knew you couldn't fail?",
-    "What lesson from your past are you most grateful for?",
-    "How can you show yourself more compassion today?"
-];
+const reflections = {
+    heavy: [
+        "What is one small thing you can release right now?",
+        "What would you say to a friend carrying what you carry?",
+        "What does your body need most in this moment?",
+        "What are you ready to let go of?",
+        "How can you show yourself more compassion today?"
+    ],
+    searching: [
+        "What are you truly looking for beneath this question?",
+        "Where can you practice more patience?",
+        "How does this moment serve your journey?",
+        "What would you do if you knew you couldn't fail?",
+        "Which thought served you best today?"
+    ],
+    grateful: [
+        "What abundance are you grateful for right now?",
+        "What made you feel worthy today?",
+        "What small step did you take toward growth today?",
+        "What lesson from your past are you most grateful for?",
+        "Who in your life deserves your gratitude today?"
+    ]
+};
 
 const fallbackQuotes = [
     "I am worthy of all the good things that come into my life.",
@@ -34,46 +44,59 @@ const fallbackQuotes = [
     "I release what no longer serves me.",
     "I am exactly where I need to be.",
     "My potential is limitless.",
-    "Abundance flows freely through me."
+    "Abundance flows freely through me.",
+    "I am allowed to take up space.",
+    "Every ending makes room for a new beginning.",
+    "I choose peace over perfection.",
+    "I am enough, exactly as I am."
 ];
 
 let currentQuote = null;
 let savedCards = JSON.parse(localStorage.getItem('savedCards')) || [];
-let typewriterTimer = null;
+let currentMood = 'searching';
+let twCancel = false;
 
 function typeWriter(text) {
-    if (typewriterTimer) clearTimeout(typewriterTimer);
+    twCancel = true;
     quoteText.textContent = '';
+    const token = {};
+    twCancel = false;
     let i = 0;
-    function type() {
+    function tick() {
+        if (twCancel) return;
         if (i < text.length) {
-            quoteText.textContent = text.slice(0, i + 1);
-            i++;
-            typewriterTimer = setTimeout(type, 45);
+            quoteText.textContent = text.slice(0, ++i);
+            setTimeout(tick, 40);
         }
     }
-    type();
+    tick();
 }
 
 async function loadCard() {
-    try {
-        const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://zenquotes.io/api/random'));
-        const data = await res.json();
-        const parsed = JSON.parse(data.contents);
-        currentQuote = {
-            quote: parsed[0].q,
-            reflection: reflections[Math.floor(Math.random() * reflections.length)]
-        };
-    } catch {
-        currentQuote = {
-            quote: fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)],
-            reflection: reflections[Math.floor(Math.random() * reflections.length)]
-        };
-    }
-    typeWriter(currentQuote.quote);
-    reflectionText.textContent = currentQuote.reflection;
+    const pool = reflections[currentMood];
+    const reflection = pool[Math.floor(Math.random() * pool.length)];
+
+    // show fallback immediately
+    let quote = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
+    currentQuote = { quote, reflection };
+    typeWriter(quote);
+    reflectionText.textContent = reflection;
     card.classList.remove('flipped');
     updateBookmark();
+
+    // try to replace with API quote
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://zenquotes.io/api/random') + '&t=' + Date.now(), { signal: controller.signal });
+        clearTimeout(timeout);
+        const data = await res.json();
+        const parsed = JSON.parse(data.contents);
+        if (!parsed || !parsed[0] || !parsed[0].q) throw new Error('bad response');
+        currentQuote = { quote: parsed[0].q, reflection };
+        typeWriter(currentQuote.quote);
+        updateBookmark();
+    } catch {}
 }
 
 function updateBookmark() {
@@ -126,29 +149,18 @@ libraryBtn.addEventListener('click', () => {
 });
 
 closeLibrary.addEventListener('click', () => libraryPanel.classList.remove('open'));
-ambientBtn.addEventListener('click', () => ambientMenu.classList.toggle('open'));
 
-document.querySelectorAll('[data-ambient]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-        const mode = btn.dataset.ambient;
-        ambientOverlay.className = 'ambient-overlay';
-        rainSound.pause();
-        rainSound.currentTime = 0;
-        if (mode === 'rain') {
-            ambientOverlay.classList.add('rain');
-            rainSound.volume = 0.3;
-            await rainSound.play().catch(() => {});
-        }
-        ambientMenu.classList.remove('open');
+// tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
     });
 });
 
-loadCard();
-
-// --- Meditation ---
-const meditationBtn = document.getElementById('meditation-btn');
-const meditationPanel = document.getElementById('meditation-panel');
-const closeMeditation = document.getElementById('close-meditation');
+// meditation timer
 const timerDisplay = document.getElementById('timer-display');
 const timerStart = document.getElementById('timer-start');
 const timerReset = document.getElementById('timer-reset');
@@ -162,9 +174,6 @@ let timerInterval = null;
 let timerRunning = false;
 let breathInterval = null;
 let breathRunning = false;
-
-meditationBtn.addEventListener('click', () => meditationPanel.classList.toggle('open'));
-closeMeditation.addEventListener('click', () => meditationPanel.classList.remove('open'));
 
 document.querySelectorAll('.timer-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -212,7 +221,6 @@ timerReset.addEventListener('click', () => {
     updateTimerDisplay();
 });
 
-// Breathing guide: 4s inhale, 4s hold, 4s exhale
 const breathPhases = [
     { text: 'Inhale',  duration: 4000, scale: 1.3 },
     { text: 'Hold',    duration: 4000, scale: 1.3 },
@@ -244,3 +252,18 @@ breathStart.addEventListener('click', () => {
         runBreathPhase();
     }
 });
+
+// mood check-in
+document.querySelectorAll('.mood-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        currentMood = btn.dataset.mood;
+        moodOverlay.classList.add('fade-out');
+        setTimeout(() => {
+            moodOverlay.style.display = 'none';
+            mainApp.classList.remove('hidden');
+            loadCard();
+        }, 800);
+    });
+});
+
+
